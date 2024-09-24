@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 import time
+import csv
 
 url = "https://www.wanted.co.kr"
 keywords = ["python"]
@@ -24,19 +25,16 @@ def scrape_page(search_url):
     # Job Scraping using BS4
     soup = BeautifulSoup(content, "html.parser")
     jobs = soup.find_all("div", class_="JobCard_container__REty8")
-    count = 1
     for job in jobs:
         link = f"{url}{job.find('a')['href']}"
         title = job.find("strong", class_="JobCard_title__HBpZf").text
         company_name = job.find("span", class_="JobCard_companyName__N1YrF").text
         job_data = {
-            "job_number": f"{keyword}_{count}",
             "title": title,
             "company_name": company_name,
             "link": link,
         }
         jobs_db.append(job_data)
-        count += 1
 
 # Execute job scraping by each keyword
 for keyword in keywords:
@@ -45,3 +43,11 @@ for keyword in keywords:
     
 # Display results
 print(jobs_db)
+
+# Exporting CSV
+file = open("jobs.csv", "w")
+writer = csv.writer(file)
+writer.writerow(["Title", "Company", "Link"])
+
+for job in jobs_db:
+    writer.writerow(job.values())
